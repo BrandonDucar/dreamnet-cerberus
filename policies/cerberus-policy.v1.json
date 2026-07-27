@@ -1,0 +1,31 @@
+{
+  "schema": "dreamnet.cerberus-policy.v1",
+  "allowedVerdicts": [
+    "green"
+  ],
+  "internalScopes": [
+    "@dreamnet/"
+  ],
+  "limits": {
+    "maxFiles": 12000,
+    "maxTotalBytes": 262144000,
+    "maxTextBytesPerFile": 2097152,
+    "maxFindings": 2000,
+    "maxNetworkDestinations": 500
+  },
+  "thresholds": {
+    "yellow": 15,
+    "orange": 40,
+    "red": 70
+  },
+  "suspiciousHosts": [
+    "pastebin.com",
+    "gist.githubusercontent.com",
+    "raw.githubusercontent.com",
+    "cdn.discordapp.com",
+    "media.discordapp.net",
+    "api.telegram.org",
+    "ipfs.io",
+    "gateway.pinata.cloud"
+  ]
+}

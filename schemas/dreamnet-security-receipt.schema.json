@@ -1,0 +1,328 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dreamnet.ink/schemas/dreamnet-security-receipt.schema.json",
+  "title": "DreamNet Cerberus Security Receipt",
+  "type": "object",
+  "required": [
+    "schema",
+    "receiptId",
+    "createdAt",
+    "intake",
+    "artifact",
+    "evidence",
+    "sbom",
+    "riskScores",
+    "verdict",
+    "decision",
+    "scanner",
+    "limits",
+    "attestation",
+    "hashes"
+  ],
+  "properties": {
+    "schema": {
+      "const": "dreamnet.security-receipt.v1"
+    },
+    "receiptId": {
+      "type": "string",
+      "minLength": 12
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "intake": {
+      "type": "object",
+      "required": [
+        "source",
+        "sourceIdentity",
+        "commit",
+        "retrievedAt",
+        "declaredPurpose",
+        "requestedBy",
+        "requestedPermissions",
+        "snapshotMode"
+      ],
+      "properties": {
+        "source": { "type": "string" },
+        "sourceIdentity": { "type": "string" },
+        "commit": { "type": ["string", "null"] },
+        "retrievedAt": { "type": "string", "format": "date-time" },
+        "declaredPurpose": { "type": "string" },
+        "requestedBy": { "type": "string" },
+        "requestedPermissions": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "snapshotMode": { "const": "digest-only" }
+      },
+      "additionalProperties": false
+    },
+    "artifact": {
+      "type": "object",
+      "required": [
+        "name",
+        "kind",
+        "digest",
+        "fileCount",
+        "totalBytes",
+        "includedPathCount",
+        "manifest"
+      ],
+      "properties": {
+        "name": { "type": "string" },
+        "kind": { "type": "string" },
+        "digest": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        },
+        "fileCount": { "type": "integer", "minimum": 0 },
+        "totalBytes": { "type": "integer", "minimum": 0 },
+        "includedPathCount": { "type": ["integer", "null"], "minimum": 0 },
+        "manifest": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["path", "kind", "mode", "size", "digest"],
+            "properties": {
+              "path": { "type": "string" },
+              "kind": { "enum": ["file", "symlink"] },
+              "mode": { "type": "integer", "minimum": 0 },
+              "size": { "type": "integer", "minimum": 0 },
+              "digest": {
+                "type": "string",
+                "pattern": "^sha256:[a-f0-9]{64}$"
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "evidence": {
+      "type": "object",
+      "required": [
+        "staticFindings",
+        "findingCounts",
+        "networkDestinations",
+        "requestedCapabilities",
+        "observedCapabilities",
+        "highRiskFiles",
+        "skipped"
+      ],
+      "properties": {
+        "staticFindings": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/finding" }
+        },
+        "findingCounts": {
+          "type": "object",
+          "additionalProperties": { "type": "integer", "minimum": 0 }
+        },
+        "networkDestinations": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/networkDestination" }
+        },
+        "requestedCapabilities": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "observedCapabilities": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "highRiskFiles": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "skipped": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["path", "reason"],
+            "properties": {
+              "path": { "type": "string" },
+              "reason": { "type": "string" }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "sbom": {
+      "type": "object",
+      "required": ["format", "completeness", "components"],
+      "properties": {
+        "format": { "const": "dreamnet.cerberus-sbom.v1" },
+        "completeness": { "type": "string" },
+        "components": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/component" }
+        }
+      },
+      "additionalProperties": false
+    },
+    "riskScores": {
+      "type": "object",
+      "required": ["overall"],
+      "properties": {
+        "overall": { "type": "integer", "minimum": 0, "maximum": 100 }
+      },
+      "additionalProperties": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 100
+      }
+    },
+    "verdict": {
+      "enum": ["green", "yellow", "orange", "red"]
+    },
+    "decision": {
+      "type": "object",
+      "required": [
+        "inspectionPassed",
+        "installationAllowed",
+        "executionAllowed",
+        "humanReviewRequired",
+        "permittedVerdicts",
+        "reasons"
+      ],
+      "properties": {
+        "inspectionPassed": { "type": "boolean" },
+        "installationAllowed": { "type": "boolean" },
+        "executionAllowed": { "type": "boolean" },
+        "humanReviewRequired": { "type": "boolean" },
+        "permittedVerdicts": {
+          "type": "array",
+          "items": { "enum": ["green", "yellow", "orange", "red"] }
+        },
+        "reasons": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      },
+      "additionalProperties": false
+    },
+    "scanner": {
+      "type": "object",
+      "required": ["name", "version", "mode", "policy", "rulesetDigest"],
+      "properties": {
+        "name": { "type": "string" },
+        "version": { "type": "string" },
+        "mode": { "const": "static-offline" },
+        "policy": { "type": "string" },
+        "rulesetDigest": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "limits": {
+      "type": "object",
+      "required": ["configured", "reached", "limitations"],
+      "properties": {
+        "configured": { "type": "object" },
+        "reached": { "type": "boolean" },
+        "limitations": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      },
+      "additionalProperties": false
+    },
+    "attestation": {
+      "type": "object",
+      "required": ["status", "signer", "signature"],
+      "properties": {
+        "status": { "enum": ["unsigned", "signed"] },
+        "signer": { "type": ["string", "null"] },
+        "signature": { "type": ["string", "null"] }
+      },
+      "additionalProperties": false
+    },
+    "hashes": {
+      "type": "object",
+      "required": ["contentSha256", "receiptSha256"],
+      "properties": {
+        "contentSha256": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        },
+        "receiptSha256": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "$defs": {
+    "finding": {
+      "type": "object",
+      "required": [
+        "id",
+        "ruleId",
+        "category",
+        "severity",
+        "file",
+        "line",
+        "message",
+        "evidenceHash",
+        "autoRun"
+      ],
+      "properties": {
+        "id": { "type": "string" },
+        "ruleId": { "type": "string" },
+        "category": { "type": "string" },
+        "severity": { "enum": ["critical", "high", "medium", "low"] },
+        "file": { "type": "string" },
+        "line": { "type": ["integer", "null"], "minimum": 1 },
+        "message": { "type": "string" },
+        "evidenceHash": {
+          "type": ["string", "null"],
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "autoRun": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
+    "networkDestination": {
+      "type": "object",
+      "required": ["scheme", "host", "port", "files"],
+      "properties": {
+        "scheme": { "type": "string" },
+        "host": { "type": "string" },
+        "port": { "type": ["string", "null"] },
+        "files": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      },
+      "additionalProperties": false
+    },
+    "component": {
+      "type": "object",
+      "required": [
+        "ecosystem",
+        "name",
+        "version",
+        "relationship",
+        "sourceFile",
+        "purl"
+      ],
+      "properties": {
+        "ecosystem": { "type": "string" },
+        "name": { "type": "string" },
+        "version": { "type": "string" },
+        "relationship": { "type": "string" },
+        "sourceFile": { "type": "string" },
+        "purl": { "type": "string" }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

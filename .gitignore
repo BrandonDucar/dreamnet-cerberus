@@ -1,0 +1,6 @@
+node_modules/
+artifacts/ops/cerberus/
+.env
+.env.*
+!.env.example
+*.log

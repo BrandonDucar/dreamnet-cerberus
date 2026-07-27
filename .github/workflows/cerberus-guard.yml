@@ -1,0 +1,71 @@
+name: Cerberus Supply Chain Guard
+
+on:
+  pull_request:
+    branches:
+      - main
+      - develop
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  static-airlock:
+    name: Static repository airlock
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout immutable revision
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Resolve comparison base
+        id: base
+        shell: bash
+        env:
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          if [[ -n "$PR_BASE_SHA" ]]; then
+            echo "sha=$PR_BASE_SHA" >> "$GITHUB_OUTPUT"
+          else
+            echo "sha=$(git rev-parse HEAD^)" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Inspect changed artifact surface
+        shell: bash
+        env:
+          BASE_SHA: ${{ steps.base.outputs.sha }}
+          SOURCE_REPOSITORY: ${{ github.repository }}
+          SOURCE_SHA: ${{ github.sha }}
+        run: |
+          SCANNER_ROOT="$RUNNER_TEMP/cerberus-base"
+          mkdir -p "$SCANNER_ROOT"
+
+          if git cat-file -e "$BASE_SHA:scripts/cerberus.mjs" 2>/dev/null; then
+            git archive "$BASE_SHA" \
+              scripts/cerberus.mjs \
+              packages/cerberus-core \
+              policies/cerberus-policy.v1.json \
+              | tar -x -C "$SCANNER_ROOT"
+          else
+            echo "Cerberus bootstrap: trusted base has no scanner; testing current scanner."
+            node --test packages/cerberus-core/tests/*.test.mjs
+            mkdir -p "$SCANNER_ROOT/scripts" "$SCANNER_ROOT/packages" "$SCANNER_ROOT/policies"
+            cp scripts/cerberus.mjs "$SCANNER_ROOT/scripts/"
+            cp -R packages/cerberus-core "$SCANNER_ROOT/packages/"
+            cp policies/cerberus-policy.v1.json "$SCANNER_ROOT/policies/"
+          fi
+
+          node "$SCANNER_ROOT/scripts/cerberus.mjs" gate . \
+            --changed-base="$BASE_SHA" \
+            --source="https://github.com/$SOURCE_REPOSITORY" \
+            --source-identity="$SOURCE_REPOSITORY" \
+            --commit="$SOURCE_SHA" \
+            --purpose="pull request supply-chain gate" \
+            --requested-by="github-actions" \
+            --policy="$SCANNER_ROOT/policies/cerberus-policy.v1.json" \
+            --allow="green,yellow" \
+            --out-dir="artifacts/ops/cerberus"
