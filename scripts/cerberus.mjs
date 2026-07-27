@@ -106,7 +106,7 @@ function changedPaths(root, baseSha) {
 
   const output = execFileSync(
     'git',
-    ['diff', '--name-only', '--diff-filter=ACMRTUXB', `${baseSha}...HEAD`, '--'],
+    ['diff', '--name-only', '--diff-filter=ACMRTUXB', baseSha, 'HEAD', '--'],
     { cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] },
   );
 
