@@ -1,0 +1,33 @@
+{
+  "name": "@dreamnet/cerberus",
+  "version": "1.0.0",
+  "description": "DreamNet Cerberus Supply-Chain Defense & Pre-Execution Inspection Engine",
+  "main": "dist/index.js",
+  "type": "module",
+  "bin": {
+    "cerberus": "dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "node --import tsx --test tests/**/*.test.ts",
+    "test:coverage": "node --import tsx --test --experimental-test-coverage tests/**/*.test.ts"
+  },
+  "keywords": [
+    "supply-chain-security",
+    "security-scanner",
+    "ast-analysis",
+    "dreamnet",
+    "malware-detection",
+    "static-analysis"
+  ],
+  "author": "Brandon Ducar <brandonducar@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "commander": "^12.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.12.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.4.5"
+  }
+}

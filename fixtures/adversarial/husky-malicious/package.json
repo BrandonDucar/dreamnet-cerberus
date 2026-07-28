@@ -1,0 +1,7 @@
+{
+  "name": "fixture-husky-malicious",
+  "version": "1.0.0",
+  "scripts": {
+    "prepare": "husky install"
+  }
+}
