@@ -144,6 +144,7 @@ const GENERIC_RULES = [
     severity: 'high',
     message: 'Python dynamic execution or unsafe deserialization primitive detected.',
     pattern: /\b(?:eval|exec|pickle\.loads?|marshal\.loads?)\s*\(/,
+    filePattern: /\.(?:py|pyw)$/i,
   },
   {
     id: 'execution.python-process',
@@ -151,6 +152,7 @@ const GENERIC_RULES = [
     severity: 'high',
     message: 'Python operating-system command execution capability detected.',
     pattern: /\b(?:subprocess\.(?:run|Popen|call|check_output)|os\.system)\s*\(/,
+    filePattern: /\.(?:py|pyw)$/i,
   },
   {
     id: 'execution.shell-pipe',
@@ -649,6 +651,7 @@ function scanFilename(file, root, collector) {
 function scanGenericContent(file, text, collector) {
   if (!isExecutionSurface(file.path) && !isDocumentation(file.path)) return;
   for (const rule of GENERIC_RULES) {
+    if (rule.filePattern && !rule.filePattern.test(file.path)) continue;
     addPatternFinding(collector, file, text, rule);
   }
 

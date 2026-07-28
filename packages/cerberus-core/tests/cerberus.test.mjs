@@ -65,6 +65,22 @@ test('allows a pinned, inert package with a lockfile', (context) => {
   assert.equal(verifyReceipt(receipt).valid, true);
 });
 
+test('applies Python dynamic-execution rules only to Python sources', (context) => {
+  const root = fixture({
+    'src/store.ts': "await database.exec('CREATE TABLE example(id text)');\n",
+    'src/unsafe.py': "exec(untrusted_payload)\n",
+  });
+  context.after(() => fs.rmSync(root, { recursive: true, force: true }));
+
+  const receipt = inspect(root);
+  const dynamicFindings = receipt.evidence.staticFindings.filter(
+    (finding) => finding.ruleId === 'execution.python-dynamic'
+  );
+
+  assert.equal(dynamicFindings.length, 1);
+  assert.equal(dynamicFindings[0].file, 'src/unsafe.py');
+});
+
 test('blocks the recruiter-repo lifecycle and remote execution pattern without executing it', (context) => {
   const marker = path.join(os.tmpdir(), `cerberus-marker-${Date.now()}`);
   const root = fixture({
