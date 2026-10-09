@@ -10,6 +10,12 @@ digest-bound security receipt.
 
 It does not run the repository it is judging.
 
+[Project overview](https://brandonducar.github.io/BrandonDucar/projects/dreamnet-cerberus/) | [Contribution guide](CONTRIBUTING.md)
+
+Start with one repository and inspect its findings before making an installation
+decision. A clean static scan is not proof that code is safe, and a digest-bound
+receipt is not an independent execution trace.
+
 ## What It Catches
 
 - npm lifecycle scripts and Git hooks
